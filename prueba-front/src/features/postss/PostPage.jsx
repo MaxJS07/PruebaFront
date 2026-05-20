@@ -7,7 +7,9 @@ import { set } from "react-hook-form";
 
 const PostPage = () => {
     const navigate = useNavigate();
-    const { posts, createPost } = usePosts();
+    const [editing, setEditing] = useState(false);
+    const [editingPost, setEditingPost] = useState({})
+    const { posts, createPost, deletePost, updatePost } = usePosts();
 
     const [formData, setFormData] = useState({
         title: "",
@@ -22,15 +24,50 @@ const PostPage = () => {
         }
     }, []);
 
-    const addPost = async () =>{
-        //Verificar campos vacíos
-        if(formData.title === "" || formData.body === ""){
-            alert("Llene todos los campos")
+    const addPost = async () => {
+
+        if (!editing) {
+            //Verificar campos vacíos
+            if (formData.title === "" || formData.body === "") {
+                alert("Llene todos los campos")
+            } else {
+                const res = await createPost(formData);
+                console.log(res)
+                setFormData({
+                    title: "",
+                    body: ""
+                })
+                alert("Post creado")
+            }
         }else{
-            const res = await createPost(formData);
-            console.log(res)
-            alert("Post creado")
+            if(formData.title === "" || formData.body === ""){
+                alert("Llene todos los campos")
+            }else{
+                const res = await updatePost(editingPost, formData);
+                setEditing(false);
+                setEditingPost({})
+                setFormData({
+                    title: "",
+                    body: ""
+                })
+                alert("Post actualizado")
+            }
         }
+
+    }
+
+    const postDelete = async (id) => {
+        await deletePost(id);
+        alert("Post eliminado")
+    }
+
+    const prepareUpdate = async (postToUpdate) => {
+        setEditing(true)
+        setEditingPost(postToUpdate);
+        setFormData({
+            title: postToUpdate.title,
+            body: postToUpdate.body
+        })
     }
 
     return (
@@ -44,11 +81,11 @@ const PostPage = () => {
             </div>
 
             <div className="flex flex-col gap-4 p-3">
-                <input type="text" placeholder="Título del post" className="input min-w-full" value={formData.title} 
-                onChange={(e) => setFormData({...formData, title: e.target.value})}/>
+                <input type="text" placeholder="Título del post" className="input min-w-full" value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
                 <input type="text" placeholder="Cuerpo del post" className="input min-w-full" value={formData.body}
-                onChange={(e) => setFormData({...formData, body: e.target.value})}/>
-                <button className="btn btn-primary" onClick={addPost}>Agregar post</button>
+                    onChange={(e) => setFormData({ ...formData, body: e.target.value })} />
+                <button className="btn btn-primary" onClick={addPost}>Confirmar</button>
             </div>
 
             <div className="flex flex-col min-w-full p-4 gap-4">
@@ -62,10 +99,10 @@ const PostPage = () => {
                                 </p>
                             </div>
                             <div className="flex flex-row gap-3">
-                                <button className="btn bg-blue-400 ">
+                                <button className="btn bg-blue-400" onClick={() => prepareUpdate(post)}>
                                     <SquarePen />
                                 </button>
-                                <button className="btn btn-error">
+                                <button className="btn btn-error" onClick={() => postDelete(post.id)}>
                                     <Trash />
                                 </button>
                             </div>
@@ -78,7 +115,7 @@ const PostPage = () => {
                     </div>
                 ))}
 
-            
+
             </div>
         </div>
     );

@@ -38,9 +38,32 @@ export const usePosts = () => {
         return res.json();
     }
 
+    const deletePost = async (id) =>{
+        const filteredPosts = posts.filter((post) => post.id !== id)
+
+        setPosts(filteredPosts)
+    }
+
+    const updatePost = async(editingPost, updatedData) =>{
+        const updatedPosts = posts.map((post) => {
+            if(post.id === editingPost.id){
+                return {
+                    ...post,
+                    ...updatedData
+                }
+            }
+            
+            return post;
+        });
+        
+        setPosts(updatedPosts);
+    }
+
     return {
         posts,
-        createPost
+        createPost,
+        deletePost,
+        updatePost
     }
 
 }
